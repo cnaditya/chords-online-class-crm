@@ -599,9 +599,8 @@ def students_page():
         if students:
             # Enhanced student display - collapsed by default
             with st.expander(f"📋 Students List ({len(students)} found)", expanded=False):
-            
-            # Export button
-            col1, col2 = st.columns([3, 1])
+                # Export button
+                col1, col2 = st.columns([3, 1])
             with col2:
                 if st.button("📥 Export All", use_container_width=True):
                     export_data = []
