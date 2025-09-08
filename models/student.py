@@ -10,10 +10,6 @@ class Student(Base):
     email = Column(String(100), unique=True, index=True)
     country_code = Column(String(5), nullable=False, default="+91")
     phone = Column(String(15), nullable=False)
-    parent1_country_code = Column(String(5))
-    parent1_phone = Column(String(15))
-    parent2_country_code = Column(String(5))
-    parent2_phone = Column(String(15))
     date_of_birth = Column(DateTime)
     address = Column(Text)
     instructor = Column(String(50), nullable=False)  # Aditya or Brahmani
@@ -28,15 +24,3 @@ class Student(Base):
     @property
     def whatsapp_number(self):
         return f"{self.country_code}{self.phone}"
-    
-    @property
-    def parent1_whatsapp(self):
-        if self.parent1_phone and self.parent1_country_code:
-            return f"{self.parent1_country_code}{self.parent1_phone}"
-        return None
-    
-    @property
-    def parent2_whatsapp(self):
-        if self.parent2_phone and self.parent2_country_code:
-            return f"{self.parent2_country_code}{self.parent2_phone}"
-        return None

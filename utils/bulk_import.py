@@ -8,12 +8,7 @@ def create_student_template():
     template_data = {
         'name': ['John Doe', 'Jane Smith'],
         'email': ['john@example.com', 'jane@example.com'],
-        'country_code': ['+91', '+1'],
-        'phone': ['9876543210', '2016168147'],
-        'parent1_country_code': ['+91', '+1'],
-        'parent1_phone': ['9876543200', '9178619761'],
-        'parent2_country_code': ['', '+1'],
-        'parent2_phone': ['', '4042718365'],
+        'phone': ['+919876543210', '+12016168147'],
         'instructor': ['Aditya', 'Brahmani'],
         'preferred_instrument': ['Piano', 'Guitar'],
         'skill_level': ['Beginner', 'Intermediate'],
@@ -30,7 +25,7 @@ def import_students_from_excel(file_content, instructor_filter=None):
         df = pd.read_excel(file_content)
         
         # Validate required columns
-        required_cols = ['name', 'country_code', 'phone', 'instructor']
+        required_cols = ['name', 'phone', 'instructor']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             return False, f"Missing required columns: {', '.join(missing_cols)}"
@@ -56,12 +51,7 @@ def import_students_from_excel(file_content, instructor_filter=None):
                 student = Student(
                     name=row['name'],
                     email=row.get('email') if pd.notna(row.get('email')) else None,
-                    country_code=row['country_code'],
                     phone=str(row['phone']),
-                    parent1_country_code=row.get('parent1_country_code') if pd.notna(row.get('parent1_country_code')) else None,
-                    parent1_phone=str(row.get('parent1_phone')) if pd.notna(row.get('parent1_phone')) else None,
-                    parent2_country_code=row.get('parent2_country_code') if pd.notna(row.get('parent2_country_code')) else None,
-                    parent2_phone=str(row.get('parent2_phone')) if pd.notna(row.get('parent2_phone')) else None,
                     date_of_birth=dob,
                     address=row.get('address') if pd.notna(row.get('address')) else None,
                     instructor=row['instructor'],

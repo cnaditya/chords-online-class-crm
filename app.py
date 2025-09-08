@@ -313,8 +313,7 @@ def students_page():
                 with col1:
                     name = st.text_input("Name*")
                     email = st.text_input("Email")
-                    phone = st.text_input("Phone*")
-                    whatsapp = st.text_input("WhatsApp Number")
+                    phone = st.text_input("WhatsApp Number*", help="Include country code (e.g., +919876543210)")
                     dob = st.date_input("Date of Birth", value=None)
                 
                 with col2:
@@ -329,8 +328,6 @@ def students_page():
                     timezone = st.text_input("Timezone", value="Asia/Kolkata")
                 
                 address = st.text_area("Address")
-                emergency_contact = st.text_input("Emergency Contact Name")
-                emergency_phone = st.text_input("Emergency Contact Phone")
                 notes = st.text_area("Notes")
                 
                 if st.form_submit_button("Add Student"):
@@ -340,11 +337,8 @@ def students_page():
                                 name=name,
                                 email=email if email else None,
                                 phone=phone,
-                                whatsapp_number=whatsapp if whatsapp else phone,
                                 date_of_birth=dob,
                                 address=address,
-                                emergency_contact=emergency_contact,
-                                emergency_phone=emergency_phone,
                                 instructor=instructor,
                                 preferred_instrument=instrument,
                                 skill_level=skill_level,
