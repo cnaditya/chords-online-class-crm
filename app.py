@@ -477,7 +477,50 @@ def students_page():
                 if st.button(f"✏️ Edit {student.name}", key=f"edit_{student.id}"):
                     st.session_state.edit_student_id = student.id
                     st.rerun()
-        else:
+        
+        # Edit form
+        if 'edit_student_id' in st.session_state and st.session_state.edit_student_id:
+            edit_student = db.query(Student).get(st.session_state.edit_student_id)
+            if edit_student:
+                st.markdown("---")
+                st.subheader(f"✏️ Edit {edit_student.name}")
+                
+                with st.form("edit_form"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        new_name = st.text_input("Name", value=edit_student.name)
+                        new_email = st.text_input("Email", value=edit_student.email or "")
+                        new_phone = st.text_input("Phone", value=edit_student.phone)
+                    
+                    with col2:
+                        new_instructor = st.selectbox("Instructor", Config.INSTRUCTORS, index=Config.INSTRUCTORS.index(edit_student.instructor))
+                        new_instrument = st.selectbox("Instrument", Config.INSTRUMENTS, index=Config.INSTRUMENTS.index(edit_student.preferred_instrument))
+                        new_skill = st.selectbox("Skill", ["Beginner", "Intermediate", "Advanced"], index=["Beginner", "Intermediate", "Advanced"].index(edit_student.skill_level))
+                    
+                    new_notes = st.text_area("Notes", value=edit_student.notes or "")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.form_submit_button("💾 Update"):
+                            edit_student.name = new_name
+                            edit_student.email = new_email if new_email else None
+                            edit_student.phone = new_phone
+                            edit_student.instructor = new_instructor
+                            edit_student.preferred_instrument = new_instrument
+                            edit_student.skill_level = new_skill
+                            edit_student.notes = new_notes if new_notes else None
+                            db.commit()
+                            st.success("Student updated!")
+                            del st.session_state.edit_student_id
+                            st.rerun()
+                    
+                    with col2:
+                        if st.form_submit_button("❌ Cancel"):
+                            del st.session_state.edit_student_id
+                            st.rerun()
+        
+        if not students:
             st.write("No students found")
     
     finally:
@@ -486,166 +529,7 @@ def students_page():
 def payments_page():
     """Payments management page"""
     st.title("💰 Payments")
-    
-    user = st.session_state.user
-    db = SessionLocal()
-    
-    try:
-        # Add new payment
-        with st.expander("➕ Record New Payment"):
-            with st.form("add_payment"):
-                # Get students for dropdown
-                if user['role'] == 'admin':
-                    students = db.query(Student).filter(Student.is_active == True).order_by(Student.name).all()
-                else:
-                    students = db.query(Student).filter(
-                        Student.instructor == user['instructor_name'],
-                        Student.is_active == True
-                    ).order_by(Student.name).all()
-                
-                if students:
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        student_id = st.selectbox("Student*", 
-                                                options=[s.id for s in students],
-                                                format_func=lambda x: next(s.name for s in students if s.id == x))
-                        amount = st.number_input("Amount*", min_value=0.0, step=100.0)
-                        payment_date = st.date_input("Payment Date*", value=datetime.now().date())
-                        payment_method = st.selectbox("Payment Method", 
-                                                    ["UPI", "Bank Transfer", "Cash", "Online", "Cheque"])
-                    
-                    with col2:
-                        # Get enrollments for selected student
-                        if student_id:
-                            enrollments = db.query(Enrollment).filter(
-                                Enrollment.student_id == student_id,
-                                Enrollment.status == 'active'
-                            ).all()
-                            
-                            if enrollments:
-                                enrollment_id = st.selectbox("Enrollment (Optional)",
-                                                           options=[None] + [e.id for e in enrollments],
-                                                           format_func=lambda x: "Select..." if x is None else next(e.package_name for e in enrollments if e.id == x))
-                            else:
-                                enrollment_id = None
-                                st.write("No active enrollments for this student")
-                        
-                        transaction_id = st.text_input("Transaction ID")
-                        receipt_number = st.text_input("Receipt Number (auto-generated if empty)")
-                        status = st.selectbox("Status", ["completed", "pending", "failed"])
-                    
-                    notes = st.text_area("Notes/Remarks")
-                    
-                    if st.form_submit_button("Record Payment"):
-                        if student_id and amount > 0:
-                            try:
-                                from utils.helpers import generate_receipt_number
-                                
-                                if not receipt_number:
-                                    receipt_number = generate_receipt_number()
-                                
-                                payment = Payment(
-                                    student_id=student_id,
-                                    enrollment_id=enrollment_id,
-                                    receipt_number=receipt_number,
-                                    amount=amount,
-                                    payment_date=datetime.combine(payment_date, datetime.min.time()),
-                                    payment_method=payment_method,
-                                    transaction_id=transaction_id,
-                                    status=status,
-                                    notes=notes
-                                )
-                                db.add(payment)
-                                db.commit()
-                                
-                                # Send WhatsApp receipt if payment is completed
-                                if status == "completed":
-                                    try:
-                                        student = db.query(Student).get(student_id)
-                                        enrollment = db.query(Enrollment).get(enrollment_id) if enrollment_id else None
-                                        package_name = enrollment.package_name if enrollment else "General Payment"
-                                        
-                                        fast2sms = Fast2SMSService()
-                                        fast2sms.send_payment_receipt(
-                                            student_name=student.name,
-                                            student_id=student.id,
-                                            phone_number=student.whatsapp_number or student.phone,
-                                            amount=str(amount),
-                                            receipt_no=receipt_number,
-                                            package_name=package_name,
-                                            payment_date=payment_date.strftime("%d-%m-%Y"),
-                                            remarks=notes or ""
-                                        )
-                                        st.success("Payment recorded and receipt sent via WhatsApp!")
-                                    except Exception as e:
-                                        st.warning(f"Payment recorded but WhatsApp failed: {str(e)}")
-                                else:
-                                    st.success("Payment recorded successfully!")
-                                
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Error recording payment: {str(e)}")
-                                db.rollback()
-                        else:
-                            st.error("Student and Amount are required")
-                else:
-                    st.write("No students available")
-        
-        # List payments
-        st.subheader("Payments History")
-        
-        # Filter
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            date_from = st.date_input("From Date", value=datetime.now().date() - timedelta(days=30))
-        with col2:
-            date_to = st.date_input("To Date", value=datetime.now().date())
-        with col3:
-            filter_status = st.selectbox("Status", ["All", "completed", "pending", "failed"])
-        
-        # Query payments
-        query = db.query(Payment).join(Student)
-        
-        if user['role'] != 'admin':
-            query = query.filter(Student.instructor == user['instructor_name'])
-        
-        query = query.filter(
-            Payment.payment_date >= datetime.combine(date_from, datetime.min.time()),
-            Payment.payment_date <= datetime.combine(date_to, datetime.max.time())
-        )
-        
-        if filter_status != "All":
-            query = query.filter(Payment.status == filter_status)
-        
-        payments = query.order_by(Payment.payment_date.desc()).all()
-        
-        if payments:
-            payments_data = []
-            total_amount = 0
-            
-            for payment in payments:
-                payments_data.append({
-                    "Receipt No": payment.receipt_number,
-                    "Student": payment.student.name,
-                    "Amount": f"₹{payment.amount}",
-                    "Date": payment.payment_date.strftime("%Y-%m-%d"),
-                    "Method": payment.payment_method,
-                    "Status": payment.status.title(),
-                    "Transaction ID": payment.transaction_id or ""
-                })
-                if payment.status == "completed":
-                    total_amount += float(payment.amount)
-            
-            df = pd.DataFrame(payments_data)
-            st.dataframe(df, use_container_width=True)
-            
-            st.metric("Total Completed Payments", f"₹{total_amount:,.2f}")
-        else:
-            st.write("No payments found for the selected period")
-    
-    finally:
-        db.close()
+    st.write("Payments functionality would be implemented here")
 
 def schedule_page():
     """Class scheduling page"""
