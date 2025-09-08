@@ -716,4 +716,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-        # Edit student form (add after the edit button)
