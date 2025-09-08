@@ -6,15 +6,15 @@ from models.base import SessionLocal
 def create_student_template():
     """Create Excel template for bulk student import"""
     template_data = {
-        'name': ['John Doe', 'Jane Smith'],
-        'email': ['john@example.com', 'jane@example.com'],
-        'country_code': ['+91', '+1'],
-        'phone': ['9876543210', '2016168147'],
-        'instructor': ['Aditya', 'Brahmani'],
-        'preferred_instrument': ['Piano', 'Guitar'],
-        'skill_level': ['Beginner', 'Intermediate'],
-        'timezone': ['Asia/Kolkata', 'America/New_York'],
-        'notes': ['Interested in classical', 'Prefers evening classes']
+        'name': ['John Doe', 'Jane Smith', 'Mike Johnson'],
+        'email': ['john@example.com', 'jane@example.com', 'mike@example.com'],
+        'country_code': ['+91', '+1', '+64'],
+        'phone': ['9876543210', '2016168147', '22400104'],
+        'instructor': ['Aditya', 'Brahmani', 'Aditya'],
+        'preferred_instrument': ['Piano', 'Guitar', 'Carnatic Vocal'],
+        'skill_level': ['Beginner', 'Intermediate', 'Beginner'],
+        'timezone': ['Asia/Kolkata', 'America/New_York', 'Pacific/Auckland'],
+        'notes': ['From India', 'From USA', 'From New Zealand']
     }
     
     df = pd.DataFrame(template_data)

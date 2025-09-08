@@ -313,8 +313,20 @@ def students_page():
                 with col1:
                     name = st.text_input("Name*")
                     email = st.text_input("Email")
-                    country_code = st.selectbox("Country Code*", ["+91", "+1", "+64", "+44", "+61"], index=0)
-                    phone = st.text_input("Phone Number*", help="Without country code")
+                    
+                    from utils.countries import get_country_options, extract_country_code
+                    country_options = get_country_options()
+                    default_index = next((i for i, option in enumerate(country_options) if "India" in option), 0)
+                    
+                    selected_country = st.selectbox(
+                        "Country*", 
+                        country_options,
+                        index=default_index,
+                        help="Type to search countries"
+                    )
+                    country_code = extract_country_code(selected_country)
+                    
+                    phone = st.text_input("Phone Number*", help=f"Without country code ({country_code})")
                     dob = st.date_input("Date of Birth", value=None)
                 
                 with col2:
