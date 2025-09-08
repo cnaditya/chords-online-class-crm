@@ -336,6 +336,7 @@ def students_page():
                             student = Student(
                                 name=name,
                                 email=email if email else None,
+                                country_code="+91",
                                 phone=phone,
                                 date_of_birth=dob,
                                 address=address,

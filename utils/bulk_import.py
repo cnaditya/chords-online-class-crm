@@ -8,7 +8,8 @@ def create_student_template():
     template_data = {
         'name': ['John Doe', 'Jane Smith'],
         'email': ['john@example.com', 'jane@example.com'],
-        'phone': ['+919876543210', '+12016168147'],
+        'country_code': ['+91', '+1'],
+        'phone': ['9876543210', '2016168147'],
         'instructor': ['Aditya', 'Brahmani'],
         'preferred_instrument': ['Piano', 'Guitar'],
         'skill_level': ['Beginner', 'Intermediate'],
@@ -25,7 +26,7 @@ def import_students_from_excel(file_content, instructor_filter=None):
         df = pd.read_excel(file_content)
         
         # Validate required columns
-        required_cols = ['name', 'phone', 'instructor']
+        required_cols = ['name', 'country_code', 'phone', 'instructor']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             return False, f"Missing required columns: {', '.join(missing_cols)}"
@@ -51,6 +52,7 @@ def import_students_from_excel(file_content, instructor_filter=None):
                 student = Student(
                     name=row['name'],
                     email=row.get('email') if pd.notna(row.get('email')) else None,
+                    country_code=row['country_code'],
                     phone=str(row['phone']),
                     date_of_birth=dob,
                     address=row.get('address') if pd.notna(row.get('address')) else None,
