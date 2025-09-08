@@ -338,7 +338,6 @@ def students_page():
                     
                     instrument = st.selectbox("Preferred Instrument", Config.INSTRUMENTS)
                     skill_level = st.selectbox("Skill Level", ["Beginner", "Intermediate", "Advanced"])
-                    timezone = st.text_input("Timezone", value="Asia/Kolkata")
                 
                 address = st.text_area("Address")
                 notes = st.text_area("Notes")
@@ -356,7 +355,6 @@ def students_page():
                                 instructor=instructor,
                                 preferred_instrument=instrument,
                                 skill_level=skill_level,
-                                timezone=timezone,
                                 notes=notes
                             )
                             db.add(student)
@@ -474,6 +472,11 @@ def students_page():
                     st.write(f"**Address:** {student.address}")
                 if student.notes:
                     st.write(f"**Notes:** {student.notes}")
+                
+                # Edit button
+                if st.button(f"✏️ Edit {student.name}", key=f"edit_{student.id}"):
+                    st.session_state.edit_student_id = student.id
+                    st.rerun()
         else:
             st.write("No students found")
     
