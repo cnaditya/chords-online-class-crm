@@ -8,6 +8,7 @@ from utils.auth import hash_password, verify_password
 from services.notifications import Fast2SMSService
 from config import Config
 import os
+import io
 
 # Initialize database
 Base.metadata.create_all(bind=engine)
@@ -265,6 +266,45 @@ def students_page():
     db = SessionLocal()
     
     try:
+        # Bulk Import Section
+        st.subheader("📊 Bulk Import")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📥 Download Template"):
+                from utils.bulk_import import create_student_template
+                template_df = create_student_template()
+                csv = template_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Student Template",
+                    data=csv,
+                    file_name="student_template.csv",
+                    mime="text/csv"
+                )
+        
+        with col2:
+            uploaded_file = st.file_uploader(
+                "📤 Upload Students Excel/CSV",
+                type=['xlsx', 'xls', 'csv'],
+                help="Upload Excel or CSV file with student data"
+            )
+            
+            if uploaded_file is not None:
+                if st.button("Import Students"):
+                    from utils.bulk_import import import_students_from_excel
+                    
+                    instructor_filter = None if user['role'] == 'admin' else user['instructor_name']
+                    
+                    success, message = import_students_from_excel(uploaded_file, instructor_filter)
+                    
+                    if success:
+                        st.success(message)
+                        st.rerun()
+                    else:
+                        st.error(message)
+        
+        st.markdown("---")
+        
         # Add new student
         with st.expander("➕ Add New Student"):
             with st.form("add_student"):
@@ -353,6 +393,37 @@ def students_page():
         students = query.order_by(Student.name).all()
         
         if students:
+            # Export functionality
+            col1, col2 = st.columns([3, 1])
+            with col2:
+                if st.button("📥 Export Students"):
+                    export_data = []
+                    for student in students:
+                        export_data.append({
+                            "name": student.name,
+                            "email": student.email or "",
+                            "phone": student.phone,
+                            "whatsapp_number": student.whatsapp_number or student.phone,
+                            "date_of_birth": student.date_of_birth.strftime("%Y-%m-%d") if student.date_of_birth else "",
+                            "address": student.address or "",
+                            "emergency_contact": student.emergency_contact or "",
+                            "emergency_phone": student.emergency_phone or "",
+                            "instructor": student.instructor,
+                            "preferred_instrument": student.preferred_instrument or "",
+                            "skill_level": student.skill_level,
+                            "timezone": student.timezone,
+                            "notes": student.notes or ""
+                        })
+                    
+                    export_df = pd.DataFrame(export_data)
+                    csv = export_df.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv,
+                        file_name=f"students_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv"
+                    )
+            
             # Display as table
             students_data = []
             for student in students:
