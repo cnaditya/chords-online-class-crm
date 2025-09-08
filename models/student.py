@@ -8,12 +8,14 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, index=True)
+    country_code = Column(String(5), nullable=False, default="+91")
     phone = Column(String(15), nullable=False)
-    whatsapp_number = Column(String(15))
+    parent1_country_code = Column(String(5))
+    parent1_phone = Column(String(15))
+    parent2_country_code = Column(String(5))
+    parent2_phone = Column(String(15))
     date_of_birth = Column(DateTime)
     address = Column(Text)
-    emergency_contact = Column(String(100))
-    emergency_phone = Column(String(15))
     instructor = Column(String(50), nullable=False)  # Aditya or Brahmani
     preferred_instrument = Column(String(50))
     skill_level = Column(String(20), default="Beginner")  # Beginner, Intermediate, Advanced
@@ -22,3 +24,19 @@ class Student(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    @property
+    def whatsapp_number(self):
+        return f"{self.country_code}{self.phone}"
+    
+    @property
+    def parent1_whatsapp(self):
+        if self.parent1_phone and self.parent1_country_code:
+            return f"{self.parent1_country_code}{self.parent1_phone}"
+        return None
+    
+    @property
+    def parent2_whatsapp(self):
+        if self.parent2_phone and self.parent2_country_code:
+            return f"{self.parent2_country_code}{self.parent2_phone}"
+        return None

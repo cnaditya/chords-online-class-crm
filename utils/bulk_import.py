@@ -8,16 +8,16 @@ def create_student_template():
     template_data = {
         'name': ['John Doe', 'Jane Smith'],
         'email': ['john@example.com', 'jane@example.com'],
-        'phone': ['9876543210', '9876543211'],
-        'whatsapp_number': ['9876543210', '9876543211'],
-        'date_of_birth': ['1995-01-15', '1998-03-20'],
-        'address': ['123 Main St, City', '456 Oak Ave, Town'],
-        'emergency_contact': ['John Sr', 'Jane Mom'],
-        'emergency_phone': ['9876543200', '9876543201'],
+        'country_code': ['+91', '+1'],
+        'phone': ['9876543210', '2016168147'],
+        'parent1_country_code': ['+91', '+1'],
+        'parent1_phone': ['9876543200', '9178619761'],
+        'parent2_country_code': ['', '+1'],
+        'parent2_phone': ['', '4042718365'],
         'instructor': ['Aditya', 'Brahmani'],
         'preferred_instrument': ['Piano', 'Guitar'],
         'skill_level': ['Beginner', 'Intermediate'],
-        'timezone': ['Asia/Kolkata', 'Asia/Kolkata'],
+        'timezone': ['Asia/Kolkata', 'America/New_York'],
         'notes': ['Interested in classical', 'Prefers evening classes']
     }
     
@@ -30,7 +30,7 @@ def import_students_from_excel(file_content, instructor_filter=None):
         df = pd.read_excel(file_content)
         
         # Validate required columns
-        required_cols = ['name', 'phone', 'instructor']
+        required_cols = ['name', 'country_code', 'phone', 'instructor']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             return False, f"Missing required columns: {', '.join(missing_cols)}"
@@ -56,12 +56,14 @@ def import_students_from_excel(file_content, instructor_filter=None):
                 student = Student(
                     name=row['name'],
                     email=row.get('email') if pd.notna(row.get('email')) else None,
+                    country_code=row['country_code'],
                     phone=str(row['phone']),
-                    whatsapp_number=str(row.get('whatsapp_number', row['phone'])),
+                    parent1_country_code=row.get('parent1_country_code') if pd.notna(row.get('parent1_country_code')) else None,
+                    parent1_phone=str(row.get('parent1_phone')) if pd.notna(row.get('parent1_phone')) else None,
+                    parent2_country_code=row.get('parent2_country_code') if pd.notna(row.get('parent2_country_code')) else None,
+                    parent2_phone=str(row.get('parent2_phone')) if pd.notna(row.get('parent2_phone')) else None,
                     date_of_birth=dob,
                     address=row.get('address') if pd.notna(row.get('address')) else None,
-                    emergency_contact=row.get('emergency_contact') if pd.notna(row.get('emergency_contact')) else None,
-                    emergency_phone=str(row.get('emergency_phone')) if pd.notna(row.get('emergency_phone')) else None,
                     instructor=row['instructor'],
                     preferred_instrument=row.get('preferred_instrument') if pd.notna(row.get('preferred_instrument')) else None,
                     skill_level=row.get('skill_level', 'Beginner'),
