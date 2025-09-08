@@ -410,12 +410,11 @@ def students_page():
                         export_data.append({
                             "name": student.name,
                             "email": student.email or "",
+                            "country_code": student.country_code,
                             "phone": student.phone,
-                            "whatsapp_number": student.whatsapp_number or student.phone,
+                            "whatsapp_number": student.whatsapp_number,
                             "date_of_birth": student.date_of_birth.strftime("%Y-%m-%d") if student.date_of_birth else "",
                             "address": student.address or "",
-                            "emergency_contact": student.emergency_contact or "",
-                            "emergency_phone": student.emergency_phone or "",
                             "instructor": student.instructor,
                             "preferred_instrument": student.preferred_instrument or "",
                             "skill_level": student.skill_level,
@@ -469,8 +468,7 @@ def students_page():
                     st.write(f"**Instrument:** {student.preferred_instrument}")
                     st.write(f"**Skill Level:** {student.skill_level}")
                     st.write(f"**DOB:** {student.date_of_birth.strftime('%Y-%m-%d') if student.date_of_birth else 'N/A'}")
-                    st.write(f"**Emergency Contact:** {student.emergency_contact or 'N/A'}")
-                    st.write(f"**Emergency Phone:** {student.emergency_phone or 'N/A'}")
+                    st.write(f"**Timezone:** {student.timezone}")
                 
                 if student.address:
                     st.write(f"**Address:** {student.address}")
