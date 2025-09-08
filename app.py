@@ -313,7 +313,8 @@ def students_page():
                 with col1:
                     name = st.text_input("Name*")
                     email = st.text_input("Email")
-                    phone = st.text_input("WhatsApp Number*", help="Include country code (e.g., +919876543210)")
+                    country_code = st.selectbox("Country Code*", ["+91", "+1", "+64", "+44", "+61"], index=0)
+                    phone = st.text_input("Phone Number*", help="Without country code")
                     dob = st.date_input("Date of Birth", value=None)
                 
                 with col2:
@@ -336,7 +337,7 @@ def students_page():
                             student = Student(
                                 name=name,
                                 email=email if email else None,
-                                country_code="+91",
+                                country_code=country_code,
                                 phone=phone,
                                 date_of_birth=dob,
                                 address=address,
