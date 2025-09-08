@@ -597,8 +597,8 @@ def students_page():
         st.markdown("---")
         
         if students:
-            # Enhanced student display
-            st.markdown(f'<div class="section-header"><h3>📋 Students List ({len(students)} found)</h3></div>', unsafe_allow_html=True)
+            # Enhanced student display - collapsed by default
+            with st.expander(f"📋 Students List ({len(students)} found)", expanded=False):
             
             # Export button
             col1, col2 = st.columns([3, 1])
