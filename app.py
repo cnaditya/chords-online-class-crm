@@ -716,3 +716,47 @@ def main():
 
 if __name__ == "__main__":
     main()
+        # Edit student form (add after the edit button)
+        if hasattr(st.session_state, 'edit_student_id') and st.session_state.edit_student_id:
+            edit_student = db.query(Student).get(st.session_state.edit_student_id)
+            if edit_student:
+                st.markdown("---")
+                st.subheader(f"✏️ Edit {edit_student.name}")
+                
+                with st.form("edit_student_form"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        edit_name = st.text_input("Name*", value=edit_student.name)
+                        edit_email = st.text_input("Email", value=edit_student.email or "")
+                        edit_phone = st.text_input("Phone*", value=edit_student.phone)
+                    
+                    with col2:
+                        edit_instructor = st.selectbox("Instructor*", Config.INSTRUCTORS, 
+                                                     index=Config.INSTRUCTORS.index(edit_student.instructor) if edit_student.instructor in Config.INSTRUCTORS else 0)
+                        edit_instrument = st.selectbox("Instrument", Config.INSTRUMENTS,
+                                                     index=Config.INSTRUMENTS.index(edit_student.preferred_instrument) if edit_student.preferred_instrument in Config.INSTRUMENTS else 0)
+                        edit_skill = st.selectbox("Skill", ["Beginner", "Intermediate", "Advanced"],
+                                                 index=["Beginner", "Intermediate", "Advanced"].index(edit_student.skill_level) if edit_student.skill_level in ["Beginner", "Intermediate", "Advanced"] else 0)
+                    
+                    edit_notes = st.text_area("Notes", value=edit_student.notes or "")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.form_submit_button("💾 Update"):
+                            edit_student.name = edit_name
+                            edit_student.email = edit_email if edit_email else None
+                            edit_student.phone = edit_phone
+                            edit_student.instructor = edit_instructor
+                            edit_student.preferred_instrument = edit_instrument
+                            edit_student.skill_level = edit_skill
+                            edit_student.notes = edit_notes if edit_notes else None
+                            db.commit()
+                            st.success("Updated!")
+                            del st.session_state.edit_student_id
+                            st.rerun()
+                    
+                    with col2:
+                        if st.form_submit_button("❌ Cancel"):
+                            del st.session_state.edit_student_id
+                            st.rerun()
