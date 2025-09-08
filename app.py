@@ -669,6 +669,28 @@ def settings_page():
 
 # Main app logic
 def main():
+    # Run database migration first
+    try:
+        import sqlite3
+        import os
+        
+        db_path = "data/chords_crm.db"
+        if os.path.exists(db_path):
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Check if country_code column exists
+            cursor.execute("PRAGMA table_info(students)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'country_code' not in columns:
+                cursor.execute("ALTER TABLE students ADD COLUMN country_code VARCHAR(5) DEFAULT '+91'")
+                conn.commit()
+            
+            conn.close()
+    except Exception as e:
+        pass  # Ignore migration errors, will create fresh DB
+    
     # Initialize default users
     init_default_users()
     
