@@ -828,7 +828,7 @@ def materials_page():
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    materials = db.query(Material).filter(Material.is_active == True).all()
+                    materials = db.query(Material).all()
                     if materials:
                         material_id = st.selectbox("📚 Select Material", 
                                                  options=[m.id for m in materials],
@@ -894,7 +894,7 @@ def materials_page():
             filter_type = st.selectbox("📁 Filter Type", ["All", "PDF", "Video", "Audio", "Link", "Document"], key="mat_type")
         
         # Query materials
-        query = db.query(Material).filter(Material.is_active == True)
+        query = db.query(Material)
         
         if filter_instrument != "All":
             query = query.filter(Material.instrument == filter_instrument)
