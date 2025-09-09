@@ -779,7 +779,7 @@ def settings_page():
 
 # Main app logic
 def main():
-    # Database migration
+    # Database migration - recreate table to remove email unique constraint
     try:
         import sqlite3
         import os
@@ -789,50 +789,36 @@ def main():
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
-            # Add country_code column if missing
-            cursor.execute("PRAGMA table_info(students)")
-            columns = [column[1] for column in cursor.fetchall()]
+            # Force recreate students table without unique email constraint
+            cursor.execute("DROP TABLE IF EXISTS students_backup")
+            cursor.execute("CREATE TABLE students_backup AS SELECT * FROM students")
+            cursor.execute("DROP TABLE students")
             
-            if 'country_code' not in columns:
-                cursor.execute("ALTER TABLE students ADD COLUMN country_code VARCHAR(5) DEFAULT '+91'")
+            # Create new table without unique constraint on email
+            cursor.execute("""
+                CREATE TABLE students (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name VARCHAR(100) NOT NULL,
+                    email VARCHAR(100),
+                    country_code VARCHAR(5) DEFAULT '+91',
+                    phone VARCHAR(20) NOT NULL,
+                    whatsapp_number VARCHAR(25),
+                    date_of_birth DATE,
+                    address TEXT,
+                    instructor VARCHAR(50) NOT NULL,
+                    preferred_instrument VARCHAR(50),
+                    skill_level VARCHAR(20) DEFAULT 'Beginner',
+                    timezone VARCHAR(50) DEFAULT 'Asia/Kolkata',
+                    notes TEXT,
+                    is_active BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP
+                )
+            """)
             
-            # Remove unique constraint on email by recreating table
-            cursor.execute("PRAGMA table_info(students)")
-            table_info = cursor.fetchall()
-            
-            # Check if email has unique constraint by trying to create duplicate
-            try:
-                cursor.execute("CREATE TEMP TABLE test_unique AS SELECT * FROM students LIMIT 0")
-                cursor.execute("INSERT INTO test_unique (name, email, phone, instructor, preferred_instrument, skill_level, is_active) VALUES ('test1', 'test@test.com', '123', 'Aditya', 'Piano', 'Beginner', 1)")
-                cursor.execute("INSERT INTO test_unique (name, email, phone, instructor, preferred_instrument, skill_level, is_active) VALUES ('test2', 'test@test.com', '456', 'Aditya', 'Piano', 'Beginner', 1)")
-                cursor.execute("DROP TABLE test_unique")
-            except sqlite3.IntegrityError:
-                # Email has unique constraint, need to recreate table
-                cursor.execute("ALTER TABLE students RENAME TO students_old")
-                cursor.execute("""
-                    CREATE TABLE students (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name VARCHAR(100) NOT NULL,
-                        email VARCHAR(100),
-                        country_code VARCHAR(5) DEFAULT '+91',
-                        phone VARCHAR(20) NOT NULL,
-                        whatsapp_number VARCHAR(25),
-                        date_of_birth DATE,
-                        address TEXT,
-                        emergency_contact VARCHAR(100),
-                        emergency_phone VARCHAR(20),
-                        instructor VARCHAR(50) NOT NULL,
-                        preferred_instrument VARCHAR(50),
-                        skill_level VARCHAR(20) DEFAULT 'Beginner',
-                        timezone VARCHAR(50) DEFAULT 'Asia/Kolkata',
-                        notes TEXT,
-                        is_active BOOLEAN DEFAULT 1,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP
-                    )
-                """)
-                cursor.execute("INSERT INTO students SELECT * FROM students_old")
-                cursor.execute("DROP TABLE students_old")
+            # Copy data back
+            cursor.execute("INSERT INTO students SELECT * FROM students_backup")
+            cursor.execute("DROP TABLE students_backup")
             
             conn.commit()
             conn.close()
