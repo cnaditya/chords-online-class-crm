@@ -505,7 +505,7 @@ def students_page():
                         country_code = extract_country_code(selected_country)
                         
                         phone = st.text_input("📱 Phone Number *", placeholder=f"Without {country_code}")
-                        dob = st.date_input("🎂 Date of Birth", value=None, min_value=datetime(1940, 1, 1).date(), max_value=datetime(2020, 12, 31).date())
+                        dob = st.date_input("🎂 Date of Birth", value=None, min_value=datetime(1940, 1, 1).date(), max_value=datetime(2090, 12, 31).date())
                     
                     with col2:
                         if user['role'] == 'admin':
