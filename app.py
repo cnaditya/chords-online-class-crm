@@ -783,23 +783,37 @@ def materials_page():
                 with col1:
                     title = st.text_input("📝 Material Title *", placeholder="e.g., Piano Scales Practice")
                     description = st.text_area("📄 Description", placeholder="Brief description")
-                    material_type = st.selectbox("📁 Type", ["PDF", "Video", "Audio", "Link", "Document"])
+                    material_type = st.selectbox("📁 Type", ["Video", "PDF", "Audio", "Document", "Link"], index=0)
                 
                 with col2:
-                    file_url = st.text_input("🔗 URL/Link", placeholder="https://example.com/material")
+                    # Dynamic input based on material type
+                    if material_type == "Video":
+                        file_input = st.text_input("🔗 YouTube Link", placeholder="https://youtube.com/watch?v=...")
+                    elif material_type == "PDF":
+                        uploaded_file = st.file_uploader("📄 Upload PDF", type=['pdf'])
+                        file_input = uploaded_file.name if uploaded_file else None
+                    elif material_type == "Audio":
+                        uploaded_file = st.file_uploader("🎵 Upload Audio", type=['mp3', 'wav', 'm4a'])
+                        file_input = uploaded_file.name if uploaded_file else None
+                    elif material_type == "Document":
+                        uploaded_file = st.file_uploader("📄 Upload Document", type=['doc', 'docx', 'txt'])
+                        file_input = uploaded_file.name if uploaded_file else None
+                    else:  # Link
+                        file_input = st.text_input("🔗 Web Link", placeholder="https://example.com")
+                    
                     is_public = st.checkbox("🌍 Make Public", value=True, help="Visible to all students of instructor")
                     lesson_number = st.number_input("📝 Lesson Number", min_value=1, value=1)
                 
                 col_a, col_b = st.columns([1, 1])
                 with col_a:
                     if st.form_submit_button("✅ Add Material", use_container_width=True):
-                        if title:
+                        if title and file_input:
                             try:
                                 material = Material(
                                     title=title,
                                     description=description,
                                     file_type=material_type,
-                                    file_path=file_url or None,
+                                    file_path=file_input,
                                     instructor=user['instructor_name'] if user['role'] != 'admin' else 'Admin',
                                     is_public=is_public,
                                     lesson_number=lesson_number
@@ -813,7 +827,7 @@ def materials_page():
                                 st.error(f"❌ Error: {str(e)}")
                                 db.rollback()
                         else:
-                            st.error("⚠️ Title is required")
+                            st.error("⚠️ Title and file/link are required")
                 
                 with col_b:
                     if st.form_submit_button("❌ Cancel", use_container_width=True):
@@ -889,7 +903,7 @@ def materials_page():
         with col1:
             filter_instructor = st.selectbox("👨🏫 Filter by Instructor", ["All"] + Config.INSTRUCTORS, key="mat_inst")
         with col2:
-            filter_type = st.selectbox("📁 Filter by Type", ["All", "PDF", "Video", "Audio", "Document"], key="mat_type")
+            filter_type = st.selectbox("📁 Filter by Type", ["All", "Video", "PDF", "Audio", "Document", "Link"], key="mat_type")
         
         # Query materials
         query = db.query(Material)
