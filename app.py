@@ -635,6 +635,7 @@ def students_page():
                         st.markdown(f"""
                         <div style="padding: 1rem;">
                             <h4>👤 {student.name}</h4>
+                            <p><strong>ID:</strong> CMA{student.id}</p>
                             <p>📧 {student.email or 'No email'}</p>
                             <p>📱 {student.whatsapp_number}</p>
                         </div>
@@ -704,9 +705,25 @@ def students_page():
                             del st.session_state.edit_student_id
                             st.rerun()
                     
+                    with col_b:
+                        if st.form_submit_button("🗑️ Delete Student", use_container_width=True, type="secondary"):
+                            if st.session_state.get('confirm_delete') == edit_student.id:
+                                edit_student.is_active = False
+                                db.commit()
+                                st.success("🗑️ Student deleted successfully!")
+                                del st.session_state.edit_student_id
+                                if 'confirm_delete' in st.session_state:
+                                    del st.session_state.confirm_delete
+                                st.rerun()
+                            else:
+                                st.session_state.confirm_delete = edit_student.id
+                                st.warning("⚠️ Click Delete again to confirm")
+                    
                     with col_c:
                         if st.form_submit_button("❌ Cancel", use_container_width=True):
                             del st.session_state.edit_student_id
+                            if 'confirm_delete' in st.session_state:
+                                del st.session_state.confirm_delete
                             st.rerun()
         
         if not students:
