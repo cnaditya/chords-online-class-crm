@@ -7,7 +7,7 @@ class Student(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, index=True)
+    email = Column(String(100), index=True)
     country_code = Column(String(5), nullable=False, default="+91")
     phone = Column(String(15), nullable=False)
     date_of_birth = Column(DateTime)
